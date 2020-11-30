@@ -11,7 +11,7 @@ namespace Diverse
     /// Allows to generate lots of combination of things. <see cref="Fuzzer"/> are very useful to detect hard coded values in our implementations.
     /// Note: you can instantiate another Deterministic Fuzzer by providing it the Seed you want to reuse.
     /// </summary>
-    public class Fuzzer : IFuzz
+    public partial class Fuzzer : IFuzz
     {
         private Random _internalRandom;
 
@@ -386,11 +386,11 @@ namespace Diverse
                 }
 
                 // by default
-                pwd.Append(_lowerCharacters[InternalRandom.Next(1, 26)]);
+                pwd.Append(_upperCharacters[InternalRandom.Next(1, 26)]);
             }
 
             return pwd.ToString();
-        }
+        }        
 
         private static void CheckGuardMinAndMaximumSizes(int? minSize, int? maxSize, int minimumSize, int maximumSize, int defaultMinSize, int defaultMaxSize)
         {
@@ -458,15 +458,27 @@ namespace Diverse
             //    throw new ArgumentException(message, paramName);
             //}
 
-
             return GenerateDateTimeBetween(minDateTime, maxDateTime);
         }
 
         private IFuzzStrings _fuzzStrings;
-
         public string GenerateString(Feeling? feeling = null)
         {
             return _fuzzStrings.GenerateString(feeling);
+        }
+
+        public T GenerateInstance<T>()
+        {
+            Func<string> defaultGenerateFirstName = () => GenerateFirstName();
+            Func<string> defaultGenerateAdjective = () => GenerateString();
+
+            Generators generators = new Generators() {
+                AdjectiveGenerator = defaultGenerateAdjective,
+                NameGenerator = defaultGenerateFirstName,
+                LastNameGenerator = GenerateLastName
+            };
+
+            return new FuzzerClass().GenerateInstance<T>(generators);
         }
     }
 }
