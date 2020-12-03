@@ -1,7 +1,4 @@
-using System;
-using System.Linq;
-
-namespace Diverse
+namespace Diverse.Strings
 {
     /// <summary>
     /// Fuzz <see cref="string"/> values.
@@ -26,19 +23,14 @@ namespace Diverse
         /// <returns>An adjective based on a particular feeling or random one if not provided</returns>
         public string GenerateAdjective(Feeling? feeling = null)
         {
-            string[] adjectives;
-            if(feeling.HasValue)
+            if (!feeling.HasValue)
             {
-                adjectives = Adjectives.PerFeeling[feeling.Value];
-
-            }
-            else
-            {
-                bool isPositive = _fuzzerPrimitives.HeadsOrTails();
+                var isPositive = _fuzzerPrimitives.HeadsOrTails();
                 feeling = isPositive ? Feeling.Positive : Feeling.Negative;
-                adjectives = Adjectives.PerFeeling[feeling.Value];
             }
-            
+
+            var adjectives = Adjectives.PerFeeling[feeling.Value];
+
             var randomLocalIndex = _fuzzerPrimitives.Random.Next(0, adjectives.Length);
 
             return adjectives[randomLocalIndex];
