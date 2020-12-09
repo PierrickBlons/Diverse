@@ -9,7 +9,7 @@ namespace Diverse.Tests
     /// All about the primitives related to Numbers.
     /// </summary>
     [TestFixture]
-    public class FuzzerWithNumbersShould
+    public class NumberFuzzerShould
     {
         [TestCase(500)]
         public void GeneratePositiveInteger_with_an_inclusive_upper_bound(int attempts)
@@ -43,6 +43,12 @@ namespace Diverse.Tests
 
             Check.That(generatedPositiveNumbers.Any(n => n == 3)).IsTrue();
             Check.That(generatedPositiveNumbers.Any(n => n > 3)).IsFalse();
+        }
+
+        [Test]
+        public void GenerateLong()
+        {
+            
         }
 
     }

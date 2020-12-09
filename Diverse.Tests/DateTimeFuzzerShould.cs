@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using NFluent;
 using NUnit.Framework;
@@ -11,7 +10,7 @@ namespace Diverse.Tests
     /// All about the primitives related to Dates.
     /// </summary>
     [TestFixture]
-    public class FuzzerWithDatesShould
+    public class DateTimeFuzzerShould
     {
         [Test]
         public void GenerateDifferentDates()

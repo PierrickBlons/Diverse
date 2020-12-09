@@ -39,12 +39,6 @@ namespace Diverse
         Random IFuzz.Random => _internalRandom;
 
         /// <summary>
-        /// Gets a <see cref="Random"/> instance to use if you want your Fuzzer to be deterministic when providing a seed.
-        /// <remarks>The use of explicit interface implementation for this property is made on purpose in order to hide this internal mechanic details from the Fuzzer end-user code.</remarks>
-        /// </summary>
-        Random IProvideCorePrimitivesToFuzzer.Random => _internalRandom;
-
-        /// <summary>
         /// Gives easy access to the <see cref="IFuzz.Random"/> explicit implementation.
         /// </summary>
         private Random InternalRandom => ((IFuzz)this).Random;
@@ -76,9 +70,9 @@ namespace Diverse
             // Instantiates implementation types for the various Fuzzer
             _stringFuzzer = new StringFuzzer(this);
             _numberFuzzer = new NumberFuzzer(this);
-            _personFuzzer = new PersonFuzzer(this, _numberFuzzer);
-            _dateTimeFuzzer = new DateTimeFuzzer(this, _numberFuzzer);
-            _typeFuzzer = new TypeFuzzer(this, _personFuzzer);
+            _personFuzzer = new PersonFuzzer(this);
+            _dateTimeFuzzer = new DateTimeFuzzer(this);
+            _typeFuzzer = new TypeFuzzer(this);
         }
 
         private static void LogSeedAndTestInformations(int seed, bool seedWasProvided, string fuzzerName)
@@ -87,7 +81,7 @@ namespace Diverse
 
             if (Log == null)
             {
-                throw new FuzzerException($"You must (at least once) set a value for the static {nameof(Log)} property of the {nameof(Fuzzer)} type in order to be able to retrieve the seeds used for each one of your Fuzzer/Tests (which is a prerequisite for deterministic test runs). Suggested value: ex. {nameof(Fuzzer)}.{nameof(Log)} = TestContext.WriteLine; in the [OneTimeSetUp] initialization method of your [SetUpFixture] class.");
+                throw new FuzzerException(BuildErrorMessageForMissingLogRegistration());
             }
 
             Log($"----------------------------------------------------------------------------------------------------------------------");
@@ -104,6 +98,33 @@ namespace Diverse
             }
 
             Log($"----------------------------------------------------------------------------------------------------------------------");
+        }
+
+        private static string BuildErrorMessageForMissingLogRegistration()
+        {
+            var message = @"You must register (at least once) a log handler in your Test project for the Diverse library to be able to publish all the seeds used for every test (which is a prerequisite for deterministic test runs afterward).
+The only thing you have to do is to set a value for the static " + $"{nameof(Log)} property of the {nameof(Fuzzer)} type." + @"
+
+The best location for this call is within a unique AllFixturesSetup class.
+e.g.: with NUnit:
+
+using NUnit.Framework;
+
+namespace YouNameSpaceHere.Tests
+{
+    [SetUpFixture]
+    public class AllTestFixtures
+    {
+        [OneTimeSetUp]
+        public void Init()
+        {
+            "+ $"{nameof(Fuzzer)}.{nameof(Log)} = TestContext.WriteLine;" + @"
+        }
+    }
+}
+
+";
+            return message;
         }
 
         private static string FindTheNameOfTheTestInvolved()
@@ -194,6 +215,15 @@ namespace Diverse
         public decimal GeneratePositiveDecimal()
         {
             return _numberFuzzer.GeneratePositiveDecimal();
+        }
+
+        /// <summary>
+        /// Generates a random long value.
+        /// </summary>
+        /// <returns>A long value generated randomly.</returns>
+        public long GenerateLong()
+        {
+            return _numberFuzzer.GenerateLong();
         }
 
         #endregion
@@ -303,11 +333,20 @@ namespace Diverse
 
         #region TypeFuzzer
 
-        public T GenerateInstance<T>()
+        /// <summary>
+        /// Generates an instance of a type T.
+        /// </summary>
+        /// <returns>An instance of type T with some fuzzed properties.</returns>
+        public T GenerateInstanceOf<T>()
         {
-            return _typeFuzzer.GenerateInstance<T>();
+            return _typeFuzzer.GenerateInstanceOf<T>();
         }
 
+        /// <summary>
+        /// Generates an instance of an <see cref="Enum"/> type.
+        /// </summary>
+        /// <typeparam name="T">Type of the <see cref="Enum"/></typeparam>
+        /// <returns>An random value of the specified <see cref="Enum"/> type.</returns>
         public T GenerateEnum<T>()
         {
             return _typeFuzzer.GenerateEnum<T>();

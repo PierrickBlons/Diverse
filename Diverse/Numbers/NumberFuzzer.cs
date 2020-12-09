@@ -7,15 +7,15 @@ namespace Diverse.Numbers
     /// </summary>
     public class NumberFuzzer : IFuzzNumbers
     {
-        private readonly IProvideCorePrimitivesToFuzzer _fuzzerPrimitives;
+        private readonly IFuzz _fuzzer;
 
         /// <summary>
         /// Instantiates a <see cref="NumberFuzzer"/>.
         /// </summary>
-        /// <param name="fuzzerPrimitives">Instance of <see cref="IProvideCorePrimitivesToFuzzer"/> to use.</param>
-        public NumberFuzzer(IProvideCorePrimitivesToFuzzer fuzzerPrimitives)
+        /// <param name="fuzzer">Instance of <see cref="IFuzz"/> to use.</param>
+        public NumberFuzzer(IFuzz fuzzer)
         {
-            _fuzzerPrimitives = fuzzerPrimitives;
+            _fuzzer = fuzzer;
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Diverse.Numbers
             // Adjust the inclusiveness of the Fuzzer API to the exclusiveness of the Random API.
             maxValue = (maxValue == int.MaxValue) ? maxValue : maxValue + 1;
             
-            return _fuzzerPrimitives.Random.Next(minValue, maxValue);
+            return _fuzzer.Random.Next(minValue, maxValue);
         }
 
         /// <summary>
@@ -60,6 +60,24 @@ namespace Diverse.Numbers
         public decimal GeneratePositiveDecimal()
         {
             return Convert.ToDecimal(GenerateInteger(0, int.MaxValue));
+        }
+
+        /// <summary>
+        /// Generates a random long value.
+        /// </summary>
+        /// <returns>A long value generated randomly.</returns>
+        public long GenerateLong()
+        {
+            // found here: https://stackoverflow.com/questions/6651554/random-number-in-long-range-is-this-the-way
+
+            var min = long.MinValue;
+            var max = long.MaxValue;
+            var buf = new byte[8];
+            _fuzzer.Random.NextBytes(buf);
+
+            long longRand = BitConverter.ToInt64(buf, 0);
+
+            return (Math.Abs(longRand % (max - min)) + min);
         }
     }
 }
